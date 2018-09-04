@@ -328,6 +328,22 @@ struct opal_datatype_t;
         .ptypes = OPAL_DATATYPE_INIT_PTYPES_ARRAY_UNAVAILABLE                        \
     }
 
+#define OPAL_DATATYPE_INIT_BASIC_DATATYPE_SIZE( SIZE, ALIGN, NAME, FLAGS )                \
+    {                                                                                \
+        .super = OPAL_OBJ_STATIC_INIT(opal_datatype_t),                              \
+        .flags = OPAL_DATATYPE_FLAG_BASIC | (FLAGS),                                 \
+        .id = OPAL_DATATYPE_ ## NAME,                                                \
+        .bdt_used = (((uint32_t)1)<<(OPAL_DATATYPE_ ## NAME)),                       \
+        .size = SIZE,                                                        \
+        .true_lb = 0, .true_ub = SIZE, .lb = 0, .ub = SIZE,          \
+        .align = (ALIGN),                                                            \
+        .nbElems = 1,                                                                \
+        .name = OPAL_DATATYPE_INIT_NAME(NAME),                                       \
+        .desc = OPAL_DATATYPE_INIT_DESC_PREDEFINED(NAME),                            \
+        .opt_desc = OPAL_DATATYPE_INIT_DESC_PREDEFINED(NAME),                        \
+        .ptypes = OPAL_DATATYPE_INIT_PTYPES_ARRAY_UNAVAILABLE                        \
+    }
+
 #define OPAL_DATATYPE_INITIALIZER_LOOP(FLAGS)       OPAL_DATATYPE_INIT_BASIC_TYPE( OPAL_DATATYPE_LOOP, LOOP_S, FLAGS )
 #define OPAL_DATATYPE_INITIALIZER_END_LOOP(FLAGS)   OPAL_DATATYPE_INIT_BASIC_TYPE( OPAL_DATATYPE_END_LOOP, LOOP_E, FLAGS )
 #define OPAL_DATATYPE_INITIALIZER_LB(FLAGS)         OPAL_DATATYPE_INIT_BASIC_TYPE( OPAL_DATATYPE_LB, LB, FLAGS )
@@ -358,7 +374,9 @@ struct opal_datatype_t;
 #elif HAVE_LONG_DOUBLE && SIZEOF_LONG_DOUBLE == 2
 #define OPAL_DATATYPE_INITIALIZER_FLOAT2(FLAGS)     OPAL_DATATYPE_INIT_BASIC_DATATYPE( long double, OPAL_ALIGNMENT_LONG_DOUBLE, FLOAT2, FLAGS )
 #else
-#define OPAL_DATATYPE_INITIALIZER_FLOAT2(FLAGS)     OPAL_DATATYPE_INITIALIZER_UNAVAILABLE_NAMED( FLOAT2, FLAGS )
+//partial support, used for GPU only
+#define OPAL_DATATYPE_INITIALIZER_FLOAT2(FLAGS)     OPAL_DATATYPE_INIT_BASIC_DATATYPE_SIZE( 2, 2, FLOAT2, FLAGS )
+//#define OPAL_DATATYPE_INITIALIZER_FLOAT2(FLAGS)     OPAL_DATATYPE_INITIALIZER_UNAVAILABLE_NAMED( FLOAT2, FLAGS )
 #endif
 
 #if SIZEOF_FLOAT == 4

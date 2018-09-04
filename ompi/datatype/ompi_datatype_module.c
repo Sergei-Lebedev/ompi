@@ -86,6 +86,7 @@ ompi_predefined_datatype_t ompi_mpi_unsigned_long_long = OMPI_DATATYPE_INIT_PRED
 ompi_predefined_datatype_t ompi_mpi_long_long_int =  OMPI_DATATYPE_INIT_UNAVAILABLE (LONG_LONG_INT, OMPI_DATATYPE_FLAG_DATA_C | OMPI_DATATYPE_FLAG_DATA_INT );
 ompi_predefined_datatype_t ompi_mpi_unsigned_long_long = OMPI_DATATYPE_INIT_UNAVAILABLE (UNSIGNED_LONG_LONG, OMPI_DATATYPE_FLAG_DATA_C | OMPI_DATATYPE_FLAG_DATA_INT);
 #endif  /* HAVE_LONG_LONG */
+ompi_predefined_datatype_t ompi_mpi_float2 =         OMPI_DATATYPE_INIT_PREDEFINED (FLOAT2, OMPI_DATATYPE_FLAG_DATA_C | OMPI_DATATYPE_FLAG_DATA_FLOAT );
 ompi_predefined_datatype_t ompi_mpi_float =          OMPI_DATATYPE_INIT_PREDEFINED (FLOAT, OMPI_DATATYPE_FLAG_DATA_C | OMPI_DATATYPE_FLAG_DATA_FLOAT );
 ompi_predefined_datatype_t ompi_mpi_double =         OMPI_DATATYPE_INIT_PREDEFINED (DOUBLE, OMPI_DATATYPE_FLAG_DATA_C | OMPI_DATATYPE_FLAG_DATA_FLOAT );
 #if HAVE_LONG_DOUBLE
@@ -362,7 +363,7 @@ const ompi_datatype_t* ompi_datatype_basicDatatypes[OMPI_DATATYPE_MPI_MAX_PREDEF
 
     /* MPI 3.0 types */
     [OMPI_DATATYPE_MPI_COUNT] = &ompi_mpi_count.dt,
-
+    [OMPI_DATATYPE_MPI_FLOAT2] = &ompi_mpi_float2.dt,
     [OMPI_DATATYPE_MPI_UNAVAILABLE] = &ompi_mpi_unavailable.dt,
 };
 

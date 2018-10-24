@@ -98,10 +98,14 @@
  * Datatypes from the MPI 3.0 standard
  */
 #define OMPI_DATATYPE_MPI_COUNT                   0x2E
+#ifdef WITH_SHORT_FLOAT
 #define OMPI_DATATYPE_MPI_FLOAT2                  0x2F
 /* This should __ALWAYS__ stay last  */
 #define OMPI_DATATYPE_MPI_UNAVAILABLE             0x30
-
+#else
+/* This should __ALWAYS__ stay last  */
+#define OMPI_DATATYPE_MPI_UNAVAILABLE             0x2F
+#endif
 
 #define OMPI_DATATYPE_MPI_MAX_PREDEFINED          (OMPI_DATATYPE_MPI_UNAVAILABLE+1)
 
@@ -587,7 +591,9 @@ extern const ompi_datatype_t* ompi_datatype_basicDatatypes[OMPI_DATATYPE_MPI_MAX
 #define OMPI_DATATYPE_INITIALIZER_FLOAT               OPAL_DATATYPE_INITIALIZER_FLOAT8
 #endif
 
+#ifdef WITH_SHORT_FLOAT
 #define OMPI_DATATYPE_INITIALIZER_FLOAT2              OPAL_DATATYPE_INITIALIZER_FLOAT2
+#endif
 
 #if SIZEOF_DOUBLE == 4
 #define OMPI_DATATYPE_INITIALIZER_DOUBLE              OPAL_DATATYPE_INITIALIZER_FLOAT4

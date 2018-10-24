@@ -58,8 +58,11 @@ BEGIN_C_DECLS
  *
  * BEWARE: This constant should reflect whatever the OMPI-layer needs.
  */
+#ifdef WITH_SHORT_FLOAT
 #define OPAL_DATATYPE_MAX_SUPPORTED  48
-
+#else
+#define OPAL_DATATYPE_MAX_SUPPORTED  47
+#endif
 
 /* flags for the datatypes. */
 #define OPAL_DATATYPE_FLAG_UNAVAILABLE   0x0001  /**< datatypes unavailable on the build (OS or compiler dependant) */

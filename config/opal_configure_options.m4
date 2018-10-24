@@ -147,6 +147,17 @@ fi
 # Developer debugging
 #
 
+AC_MSG_CHECKING([build with short float support])
+AC_ARG_ENABLE(short-float,
+    AC_HELP_STRING([--enable-short-float],
+                   [enable mpiext short float support]))
+if test "$enable_short_float" = "yes"; then
+    AC_MSG_RESULT([yes])
+    CFLAGS="-DWITH_SHORT_FLOAT $CFLAGS"
+    CXXFLAGS="-DWITH_SHORT_FLOAT $CXXFLAGS"
+fi
+
+
 AC_MSG_CHECKING([if want developer-level debugging code])
 AC_ARG_ENABLE(debug,
     AC_HELP_STRING([--enable-debug],

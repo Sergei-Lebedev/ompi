@@ -11,5 +11,5 @@
  *
  */
 
-OMPI_DECLSPEC extern struct ompi_predefined_datatype_t ompi_mpi_float2;
-#define MPI_FLOAT2 OMPI_PREDEFINED_GLOBAL(MPI_Datatype, ompi_mpi_float2)
+OMPI_DECLSPEC extern struct ompi_predefined_datatype_t ompi_mpi_short_float;
+#define MPI_SHORT_FLOAT OMPI_PREDEFINED_GLOBAL(MPI_Datatype, ompi_mpi_short_float)

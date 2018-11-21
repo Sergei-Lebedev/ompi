@@ -16,6 +16,7 @@
  *                         reserved.
  * Copyright (c) 2015      Research Organization for Information Science
  *                         and Technology (RIST). All rights reserved.
+ * Copyright (c) 2018      FUJITSU LIMITED.  All rights reserved.
  * $COPYRIGHT$
  *
  * Additional copyrights may follow
@@ -216,6 +217,10 @@ int ompi_op_init(void)
 #else
 #warning Unsupported definition for MPI_COUNT
 #endif
+
+    /* Datatypes proposed in the MPI Forum */
+    ompi_op_ddt_map[OMPI_DATATYPE_MPI_SHORT_FLOAT] = OMPI_OP_BASE_TYPE_SHORT_FLOAT;
+    ompi_op_ddt_map[OMPI_DATATYPE_MPI_C_SHORT_FLOAT_COMPLEX] = OMPI_OP_BASE_TYPE_C_SHORT_FLOAT_COMPLEX;
 
     /* Create the intrinsic ops */
 

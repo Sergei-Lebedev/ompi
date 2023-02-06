@@ -42,14 +42,13 @@
         _coll_req->super.req_type             = OMPI_REQUEST_COLL;      \
     } while(0)
 
-#define COLL_UCC_REQ_INIT(_coll_req, _req, _coll, _module) do{          \
+#define COLL_UCC_REQ_INIT(_coll_req, _req, _coll, _ucc_team) do {       \
         if (_coll_req) {                                                \
             _coll.mask   |= UCC_COLL_ARGS_FIELD_CB;                     \
             _coll.cb.cb   = mca_coll_ucc_completion;                    \
             _coll.cb.data = (void*)_coll_req;                           \
         }                                                               \
-        COLL_UCC_CHECK(ucc_collective_init(&_coll, _req,                \
-                                           _module->ucc_team));         \
+        COLL_UCC_CHECK(ucc_collective_init(&_coll, _req, _ucc_team));   \
         if (_coll_req) {                                                \
             _coll_req->ucc_req = *(_req);                               \
         }                                                               \
@@ -70,6 +69,11 @@ static inline ucc_status_t coll_ucc_req_wait(ucc_coll_req_h req)
     }
     return ucc_collective_finalize(req);
 }
+
+int mca_coll_ucc_team_create(mca_coll_ucc_module_t *ucc_module,
+                             struct ompi_communicator_t *comm);
+
+int mca_coll_ucc_team_create_wait(mca_coll_ucc_module_t *ucc_module);
 
 int mca_coll_ucc_req_free(struct ompi_request_t **ompi_req);
 void mca_coll_ucc_completion(void *data, ucc_status_t status);

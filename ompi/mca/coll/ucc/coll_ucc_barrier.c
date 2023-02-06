@@ -16,7 +16,7 @@ static inline ucc_status_t mca_coll_ucc_barrier_init(mca_coll_ucc_module_t *ucc_
         .mask      = 0,
         .coll_type = UCC_COLL_TYPE_BARRIER
     };
-    COLL_UCC_REQ_INIT(coll_req, req, coll, ucc_module);
+    COLL_UCC_REQ_INIT(coll_req, req, coll, ucc_module->ucc_team);
     return UCC_OK;
 fallback:
     return UCC_ERR_NOT_SUPPORTED;

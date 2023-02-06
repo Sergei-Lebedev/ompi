@@ -30,7 +30,7 @@ static inline ucc_status_t mca_coll_ucc_bcast_init(void *buf, int count, struct 
             .mem_type = UCC_MEMORY_TYPE_UNKNOWN
         }
     };
-    COLL_UCC_REQ_INIT(coll_req, req, coll, ucc_module);
+    COLL_UCC_REQ_INIT(coll_req, req, coll, ucc_module->ucc_team);
     return UCC_OK;
 fallback:
     return UCC_ERR_NOT_SUPPORTED;

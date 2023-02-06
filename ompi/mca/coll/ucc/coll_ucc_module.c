@@ -15,6 +15,7 @@
 #include "coll_ucc_dtypes.h"
 #include "ompi/mca/coll/base/coll_tags.h"
 #include "ompi/mca/pml/pml.h"
+#include "coll_ucc_common.h"
 
 #define OBJ_RELEASE_IF_NOT_NULL( obj ) if( NULL != (obj) ) OBJ_RELEASE( obj );
 
@@ -96,8 +97,34 @@ static void mca_coll_ucc_module_construct(mca_coll_ucc_module_t *ucc_module)
 
 int mca_coll_ucc_progress(void)
 {
+    mca_coll_ucc_req_t *req, *next;
+    ucc_status_t status;
+    ucc_coll_req_h ucc_req;
+
+    if (0 != opal_list_get_size (&mca_coll_ucc_component.teams)) {
+        OPAL_THREAD_LOCK(&mca_coll_ucc_component.lock);
+        OPAL_LIST_FOREACH_SAFE(req, next, &mca_coll_ucc_component.teams,
+                               mca_coll_ucc_req_t) {
+            OPAL_THREAD_UNLOCK(&mca_coll_ucc_component.lock);
+            status = ucc_team_create_test(req->team);
+            if (UCC_INPROGRESS == status) {
+                continue;
+            }
+
+            opal_list_remove_item(&mca_coll_ucc_component.teams, &req->super.super.super);
+            if (status < 0) {
+                UCC_ERROR("UCC team create test failed");
+                return OMPI_ERROR;
+            }
+            COLL_UCC_REQ_INIT(req, &ucc_req, req->args, req->team);
+            COLL_UCC_POST_AND_CHECK(req->ucc_req);
+        }
+    }
+
     ucc_context_progress(mca_coll_ucc_component.ucc_context);
-    return OPAL_SUCCESS;
+    return OMPI_SUCCESS;
+fallback:
+    return OMPI_ERROR;
 }
 
 static void mca_coll_ucc_module_destruct(mca_coll_ucc_module_t *ucc_module)
@@ -188,6 +215,11 @@ static int ucc_comm_attr_del_fn(MPI_Comm comm, int keyval, void *attr_val, void 
 {
     mca_coll_ucc_module_t *ucc_module = (mca_coll_ucc_module_t*) attr_val;
     ucc_status_t status;
+
+    if (NULL == ucc_module->ucc_team) {
+        return OMPI_SUCCESS;
+    }
+
     while(UCC_INPROGRESS == (status = ucc_team_destroy(ucc_module->ucc_team))) {}
     if (ucc_module->comm == &ompi_mpi_comm_world.comm) {
         if (mca_coll_ucc_component.libucc_initialized) {
@@ -440,16 +472,13 @@ static inline ucc_ep_map_t get_rank_map(struct ompi_communicator_t *comm)
 
     return map;
 }
-/*
- * Initialize module on the communicator
- */
-static int mca_coll_ucc_module_enable(mca_coll_base_module_t *module,
-                                      struct ompi_communicator_t *comm)
+
+int mca_coll_ucc_team_create(mca_coll_ucc_module_t *ucc_module,
+                             struct ompi_communicator_t *comm)
 {
     mca_coll_ucc_component_t *cm         = &mca_coll_ucc_component;
-    mca_coll_ucc_module_t    *ucc_module = (mca_coll_ucc_module_t *)module;
     ucc_status_t              status;
-    int rc;
+
     ucc_team_params_t team_params = {
         .mask   = UCC_TEAM_PARAM_FIELD_EP_MAP   |
                   UCC_TEAM_PARAM_FIELD_EP       |
@@ -470,22 +499,52 @@ static int mca_coll_ucc_module_enable(mca_coll_base_module_t *module,
                 (void*)comm, (long long unsigned)team_params.id,
                 ompi_comm_size(comm));
 
-    if (OMPI_SUCCESS != mca_coll_ucc_save_coll_handlers(ucc_module)){
-        UCC_ERROR("mca_coll_ucc_save_coll_handlers failed");
-        goto err;
-    }
-
     if (UCC_OK != ucc_team_create_post(&cm->ucc_context, 1,
                                        &team_params, &ucc_module->ucc_team)) {
         UCC_ERROR("ucc_team_create_post failed");
-        goto err;
+        return OMPI_ERROR;
     }
-    while (UCC_INPROGRESS == (status = ucc_team_create_test(
-                                  ucc_module->ucc_team))) {
-        opal_progress();
-    }
+
+    return OMPI_SUCCESS;
+}
+
+ucc_status_t mca_coll_ucc_team_create_test(mca_coll_ucc_module_t *ucc_module)
+{
+    opal_progress();
+    return ucc_team_create_test(ucc_module->ucc_team);
+}
+
+int mca_coll_ucc_team_create_wait(mca_coll_ucc_module_t *ucc_module)
+{
+    ucc_status_t status;
+
+    do {
+        status = mca_coll_ucc_team_create_test(ucc_module);
+    } while (UCC_INPROGRESS == status);
+
     if (UCC_OK != status) {
-        UCC_ERROR("ucc_team_create_test failed");
+        UCC_ERROR("ucc_team_create_wait failed");
+        return OMPI_ERROR;
+    }
+
+    return OMPI_SUCCESS;
+}
+/*
+ * Initialize module on the communicator
+ */
+static int mca_coll_ucc_module_enable(mca_coll_base_module_t *module,
+                                      struct ompi_communicator_t *comm)
+{
+    mca_coll_ucc_component_t *cm         = &mca_coll_ucc_component;
+    mca_coll_ucc_module_t    *ucc_module = (mca_coll_ucc_module_t *)module;
+    ucc_status_t              status;
+    int rc;
+
+    ucc_module->nc       = cm->ucc_nc;
+    ucc_module->ucc_team = NULL;
+
+    if (OMPI_SUCCESS != mca_coll_ucc_save_coll_handlers(ucc_module)){
+        UCC_ERROR("mca_coll_ucc_save_coll_handlers failed");
         goto err;
     }
 
@@ -495,6 +554,19 @@ static int mca_coll_ucc_module_enable(mca_coll_base_module_t *module,
         UCC_ERROR("ucc ompi_attr_set_c failed");
         goto err;
     }
+
+    if (cm->ucc_nc == 0) {
+        rc = mca_coll_ucc_team_create(ucc_module, comm);
+        if (OMPI_SUCCESS != rc) {
+            goto err;
+        }
+
+        rc = mca_coll_ucc_team_create_wait(ucc_module);
+        if (OMPI_SUCCESS != rc) {
+            goto err;
+        }
+    }
+
     return OMPI_SUCCESS;
 
 err:

@@ -41,8 +41,10 @@ BEGIN_C_DECLS
                          "ireduce_scatter,iscatterv,iscatter"
 
 typedef struct mca_coll_ucc_req {
-    ompi_request_t super;
-    ucc_coll_req_h ucc_req;
+    ompi_request_t  super;
+    ucc_coll_req_h  ucc_req;
+    ucc_team_h      team;
+    ucc_coll_args_t args;
 } mca_coll_ucc_req_t;
 OBJ_CLASS_DECLARATION(mca_coll_ucc_req_t);
 
@@ -52,17 +54,20 @@ struct mca_coll_ucc_component_t {
     int                             ucc_verbose;
     int                             ucc_enable;
     int                             ucc_np;
+    int                             ucc_nc;
     char                           *cls;
     char                           *cts;
     const char                     *compiletime_version;
     const char                     *runtime_version;
     bool                            libucc_initialized;
+    opal_mutex_t                    lock;
     ucc_lib_h                       ucc_lib;
     ucc_lib_attr_t                  ucc_lib_attr;
     ucc_coll_type_t                 cts_requested;
     ucc_coll_type_t                 nb_cts_requested;
     ucc_context_h                   ucc_context;
     opal_free_list_t                requests;
+    opal_list_t                     teams;
 };
 typedef struct mca_coll_ucc_component_t mca_coll_ucc_component_t;
 
@@ -74,7 +79,7 @@ OMPI_DECLSPEC extern mca_coll_ucc_component_t mca_coll_ucc_component;
 struct mca_coll_ucc_module_t {
     mca_coll_base_module_t                          super;
     ompi_communicator_t*                            comm;
-    int                                             rank;
+    int                                             nc;
     ucc_team_h                                      ucc_team;
     mca_coll_base_module_allreduce_fn_t             previous_allreduce;
     mca_coll_base_module_t*                         previous_allreduce_module;

@@ -50,6 +50,7 @@ mca_coll_ucc_component_t mca_coll_ucc_component = {
     0,                 /* ucc_verbose                 */
     0,                 /* ucc_enable                  */
     2,                 /* ucc_np                      */
+    0,                 /* ucc_nc                      */
     "",                /* cls                         */
     COLL_UCC_CTS_STR,  /* requested coll_types string */
     UCC_VERSION_STRING /* ucc version                 */
@@ -78,6 +79,11 @@ static int mca_coll_ucc_register(void)
                                     MCA_BASE_VAR_TYPE_INT, NULL, 0, 0,
                                     OPAL_INFO_LVL_9,
                                     MCA_BASE_VAR_SCOPE_READONLY, &cm->ucc_np);
+
+    mca_base_component_var_register(c, "nc", "Number of collective to skip before UCC module init",
+                                    MCA_BASE_VAR_TYPE_INT, NULL, 0, 0,
+                                    OPAL_INFO_LVL_9,
+                                    MCA_BASE_VAR_SCOPE_READONLY, &cm->ucc_nc);
 
     mca_base_component_var_register(c, MCA_COMPILETIME_VER,
                                     "Version of the libucc library with which Open MPI was compiled",
@@ -183,10 +189,16 @@ static int mca_coll_ucc_open(void)
     cm->libucc_initialized       = false;
     opal_output_set_verbosity(mca_coll_ucc_output, cm->ucc_verbose);
     mca_coll_ucc_init_default_cts();
+    OBJ_CONSTRUCT(&cm->teams, opal_list_t);
+    OBJ_CONSTRUCT(&cm->lock, opal_mutex_t);
+
     return OMPI_SUCCESS;
 }
 
 static int mca_coll_ucc_close(void)
 {
+    mca_coll_ucc_component_t *cm = &mca_coll_ucc_component;
+    OBJ_DESTRUCT(&cm->teams);
+    OBJ_DESTRUCT(&cm->lock);
     return OMPI_SUCCESS;
 }

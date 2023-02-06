@@ -52,7 +52,7 @@ static inline ucc_status_t mca_coll_ucc_alltoallv_init(const void *sbuf, const i
         coll.mask  = UCC_COLL_ARGS_FIELD_FLAGS;
         coll.flags = UCC_COLL_ARGS_FLAG_IN_PLACE;
     }
-    COLL_UCC_REQ_INIT(coll_req, req, coll, ucc_module);
+    COLL_UCC_REQ_INIT(coll_req, req, coll, ucc_module->ucc_team);
     return UCC_OK;
 fallback:
     return UCC_ERR_NOT_SUPPORTED;
